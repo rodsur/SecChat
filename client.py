@@ -23,8 +23,6 @@ class client():
         ListenThread.start()
         self.Sender(sock)
         self.active = False
-#        Message = raw_input("Write message and press enter\n")
-        
 
     def RunServer(self):
         self.active = True
@@ -39,19 +37,35 @@ class client():
         self.active = False
 
     def Sender(self, socket):
-        while socket:
+        while 1:
             Message = raw_input()
             if Message == "exit":
-                socket.close
+                try:
+                    socket.send(self.PublicKey.public_encrypt("exit",1))
+                except:
+                    pass
                 break
-            if socket == False:
+            elif socket == False:
                 break
-            socket.send(self.PublicKey.public_encrypt(Message,1))
+            try:
+                socket.send(self.PublicKey.public_encrypt(Message,1))
+            except:
+                pass
 
     def Listen(self, socket):
         if self.active == True:
-            while socket:
+            while 1:
                 data = socket.recv(4096)
-                print self.PrivateKey.private_decrypt(data,1)
+                data = self.PrivateKey.private_decrypt(data,1)
+                if data == "exit":
+                    socket.send(self.PublicKey.public_encrypt("exit1",1))
+                    socket.close()
+                    self.active = False
+                    break
+                if data == "exit1":
+                    socket.close()
+                    self.active = False
+                    break
+                print data
         else:
             socket.close()
